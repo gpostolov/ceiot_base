@@ -34,7 +34,11 @@ static const dht_sensor_type_t sensor_type = DHT_TYPE_DHT11;
 
 static const char *TAG = "temp_collector";
 
-static char *BODY = "id="DEVICE_ID"&t=%0.2f&h=%0.2f";
+
+
+//static char *BODY = "id="DEVICE_ID"&t=%0.2f&h=%0.2f";
+//static char *BODY = "id="DEVICE_ID"&key="DEVICE_KEY"&t=%0.2f&h=%0.2f";
+static char *BODY = "id=%02x:%02x:%02x:%02x:%02x:%02x&key="DEVICE_KEY"&t=%0.2f&h=%0.2f";
 
 static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "Host: "API_IP_PORT"\r\n"
@@ -60,11 +64,23 @@ static void http_get_task(void *pvParameters)
 
     int16_t temperature = 0;
     int16_t humidity = 0;
+	
+	uint8_t mac[6];
+
+	if(esp_wifi_get_mac(0,mac) != ESP_OK){
+		ESP_LOGE(TAG, "... get mac failed errno=%d", errno);
+		mac[0] = 0xff;
+		mac[1] = 0xff;
+		mac[2] = 0xff;
+		mac[3] = 0xff;
+		mac[4] = 0xff;
+		mac[5] = 0xff;
+	}
  
     while(1) {
         if (dht_read_data(sensor_type, dht_gpio, &humidity, &temperature) == ESP_OK) {
             ESP_LOGI(TAG,"Humidity: %d%% Temp: %dC\n", humidity / 10, temperature / 10);
-            sprintf(body, BODY, (float) temperature/10  , (float) humidity/10);
+            sprintf(body, BODY, mac[0],mac[1],mac[2],mac[3],mac[4],mac[5],(float) temperature/10  , (float) humidity/10);
             sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
 	    ESP_LOGI(TAG,"sending: \n%s\n",send_buf);
         } else {
