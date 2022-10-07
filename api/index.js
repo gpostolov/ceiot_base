@@ -54,6 +54,12 @@ app.post('/device', function (req, res) {
 	res.send("received new device");
 });
 
+app.post('/delete', function (req, res) {
+	console.log("device id    : " + req.body.id + " name        : " + req.body.n + " key         : " + req.body.k );
+
+    db.public.none("DELETE FROM devices WHERE device_id = '"+req.body.id+"'");
+	res.send("deleted device");
+});
 
 app.get('/web/device', function (req, res) {
 	var devices = db.public.many("SELECT * FROM devices").map( function(device) {
@@ -72,6 +78,8 @@ app.get('/web/device', function (req, res) {
 		     "</body>" +
 		"</html>");
 });
+
+
 
 /*
  * Canibalized from
